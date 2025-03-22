@@ -88,10 +88,10 @@
         <span id="text">birşeyler yaz</span>
         <span class="cursor"></span>
     </div>
-    <a href="try.html"><button  class="button">Dene</button></a> 
+    <a href="{{ url_for('try_page') }}"><button  class="button">Dene</button></a> 
     <br>
     <p class="description1">Hendek Devlet Bahçeli Fen Lisesi : Tübitak 4006 projesidir</p>
-    <p class="description2">Daha fazla bilgi için <a class="infoLink" href="info.html">tıklayın</a> </p>
+    <p class="description2">Daha fazla bilgi için <a class="infoLink" href="{{ url_for('info') }}">tıklayın</a> </p>
 
     <script>
         const texts = ["birşeyler zırvala? ", "bir şeyler yaz! "];
