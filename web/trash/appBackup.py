@@ -1,16 +1,5 @@
-import threading
-import flask
 from flask import Flask, render_template
 
-
-def main(): #! buraya model ile alakalı kodlar gelecek, burası web sitesinin arkaplanı olacak
-    print("Hello World")
-
-mainThread = threading.Thread(target=main) 
-mainThread.start()
-
-
-#* flask app 
 app = Flask(__name__)
 
 @app.route('/')
