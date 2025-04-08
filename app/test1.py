@@ -6,8 +6,7 @@ from PyQt5.QtGui import QFont, QClipboard, QIcon
 from PyQt5.QtCore import Qt, QTimer
 from google import genai
 
-# API Key'i gir
-client = genai.Client(api_key="AIzaSyDVN386y_WYLyzuV3iygXVdaUJJvRHZs4Y")
+client = genai.Client(api_key="ÇAKALLIK YAPMA !")
 
 
 def optimizeThis(text):
@@ -46,7 +45,6 @@ class FloatingWindow(QWidget):
 
         self.show()
 
-        # Optimize işlemini arka planda başlat
         QTimer.singleShot(100, lambda: self.optimize_and_update(original_text))
 
     def optimize_and_update(self, text):
