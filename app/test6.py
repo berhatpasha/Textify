@@ -12,7 +12,7 @@ from PyQt5.QtGui import QPainter
 
 
 # API Key'i gir
-client = genai.Client(api_key="AIzaSyDVN386y_WYLyzuV3iygXVdaUJJvRHZs4Y")
+client = genai.Client(api_key="**2304235*9*")
 
 
 def optimizeThis(text):
