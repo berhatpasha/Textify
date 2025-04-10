@@ -1,5 +1,4 @@
-## !! farvori versiyonum 
-###
+
 
 from PyQt5.QtWidgets import (
     QApplication, QWidget, QTextEdit, QVBoxLayout, QSystemTrayIcon, QStyle, QMenu, QAction, QLabel
@@ -29,7 +28,6 @@ def optimizeThis(text):
 
 
 def highlight_changes(original, optimized):
-    """ Değiştirilen kelimeleri mavi fosforlu renk ile işaretleyelim. """
     original_words = original.split()
     optimized_words = optimized.split()
 
@@ -39,8 +37,6 @@ def highlight_changes(original, optimized):
             highlighted_text += f'<span style="background-color: #2196F3; color: white;">{opt_word}</span> '
         else:
             highlighted_text += opt_word + ' '
-
-    # Kalan optimized metni de ekleyelim (if the optimized text is longer)
     for opt_word in optimized_words[len(original_words):]:
         highlighted_text += f'<span style="background-color: #2196F3; color: white;">{opt_word}</span> '
 
@@ -50,8 +46,8 @@ def highlight_changes(original, optimized):
 class LoadingCircle(QWidget):
     def __init__(self):
         super().__init__()
-        self.setFixedSize(40, 40)  # Yuvarlağın boyutu
-        self.setStyleSheet("background-color: orange; border-radius: 20px;")  # Yuvarlak şekli
+        self.setFixedSize(40, 40)  
+        self.setStyleSheet("background-color: orange; border-radius: 20px;") 
         self.setAttribute(Qt.WA_OpaquePaintEvent)
 
     def paintEvent(self, event):
@@ -69,12 +65,12 @@ class FloatingWindow(QWidget):
         self.setWindowOpacity(0.85)
 
         screen_geometry = QApplication.desktop().availableGeometry()
-        self.resize(400, 100)  # Başlangıçta boyut
+        self.resize(400, 100)  
         self.move(screen_geometry.width() - 420, screen_geometry.height() - 120)
 
         layout = QVBoxLayout()
 
-        # Yuvarlak dönen animasyon
+    
         self.circle = LoadingCircle()
         layout.addWidget(self.circle, alignment=Qt.AlignCenter)
 
@@ -89,15 +85,14 @@ class FloatingWindow(QWidget):
         self.setLayout(layout)
         self.show()
 
-        # Yuvarlak animasyon
         self.animation = QPropertyAnimation(self.circle, b"rotation")
-        self.animation.setDuration(2000)  # Süreyi ayarla
-        self.animation.setLoopCount(-1)  # Sonsuz döngü
+        self.animation.setDuration(2000)  
+        self.animation.setLoopCount(-1) 
         self.animation.setStartValue(0)
         self.animation.setEndValue(360)
         self.animation.start()
 
-        # Optimize işlemini arka planda başlat
+ 
         QTimer.singleShot(100, lambda: self.optimize_and_update(original_text))
 
     def optimize_and_update(self, text):
@@ -106,21 +101,20 @@ class FloatingWindow(QWidget):
             highlighted_optimized = highlight_changes(text, optimized)
             self.text_display.setHtml(highlighted_optimized)
 
-            # Yüksekliği metnin uzunluğuna göre ayarla
+   
             lines = highlighted_optimized.split('\n')
             line_count = len(lines)
 
-            # Ekranın yüksekliği, en fazla ekranın yarısı kadar
+          
             screen_height = QApplication.desktop().availableGeometry().height()
             max_height = screen_height // 2
-            new_height = line_count * 20  # 20px her satır için
-            # Yükseklik en az 100px, en fazla ekranın yarısı kadar olmalı
+            new_height = line_count * 20  
+    
             self.setFixedHeight(min(max_height, max(500, new_height)))
 
         except Exception as e:
             self.text_display.setText(f"[HATA] optimize edilemedi:\n{e}")
 
-        # Animasyonu durdur
         self.animation.stop()
         QTimer.singleShot(5000, self.close)
 
