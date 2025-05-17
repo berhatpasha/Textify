@@ -1,1 +1,73 @@
-Üzgünüm, bu hizmet şuan kullanılamıyor.
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ortada Döngüsel Video</title>
+    <style>
+        body {
+            background-color: #121212; /* Arka plan rengi */
+            color: white; /* Genel yazı rengi */
+            font-family: 'Gill Sans', 'Gill Sans MT', Calibri, 'Trebuchet MS', sans-serif;
+            margin: 0;
+            display: flex;
+            flex-direction: column; /* Öğeleri dikey sırala */
+            justify-content: center; /* Dikeyde ortala */
+            align-items: center; /* Yatayda ortala */
+            min-height: 100vh;
+            text-align: center;
+        }
+
+        #video-container {
+            /* Video çerçevesi ve parıldama efekti */
+            background-color: #1a1a1a;
+            border-radius: 8px;
+            padding: 3px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            margin-bottom: 20px; /* Başlıktan sonra boşluk */
+            margin-top: 20px; /* Altındaki yazıdan önce boşluk */
+            animation: blue-glow 2s infinite alternate; /* Parıldama animasyonu */
+        }
+
+        @keyframes blue-glow {
+            from {
+                box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            }
+            to {
+                box-shadow: 0 0 20px #1E90FF, 0 0 40px #1E90FF; /* Mavi parıltı */
+            }
+        }
+
+        #looping-video {
+            width: 550px; /* İstediğin video genişliği */
+            height: 305px; /* İstediğin video yüksekliği */
+            border-radius: 8px;
+        }
+
+        h1 {
+            font-size: 2em;
+            margin-bottom: 10px; /* Videodan önce boşluk */
+        }
+
+        p {
+            font-size: 1.1em;
+            line-height: 1.5;
+            margin-top: 10px; /* Videodan sonra boşluk */
+            max-width: 80%; /* Yazı genişliğini sınırla */
+            margin-left: auto; /* Sağa otomatik boşluk */
+            margin-right: auto; /* Sola otomatik boşluk */
+        }
+    </style>
+</head>
+<body>
+    <h1>Nasıl çalışır ?</h1>
+    <div id="video-container">
+        <video autoplay loop muted id="looping-video">
+            <source src="bg.mp4" type="video/mp4">
+            Tarayıcınız video etiketini desteklemiyor.
+        </video>
+    </div>
+    <p>Temelde demo iki modülden oluşur; bunlar tespit ve optimizasyon olarak özetlenebilir. Tespit için temel makine öğrenmesi ile kendi eğittiğimiz makine öğrenmesi modelleri birçok yönden (resmiyet, duygu durumu, rasyonellik, nicellik vb.) incelenir ve puanlanır, cümle geneline puan (ağırlık) bakımından *eşik değerinden (bu değer algoritmanın çalışma hassasiyetini belirler) ne kadar uzak düştüğüne bakılarak cümle içerisindeki kelimeler duruma göre 'radikal' olarak işaretlenir. Daha sonrasında işaretlenen bu kelimeler genaiAPIye gönderilir ve alternatifleri sağlanır. Bu iki kısım algoritma desteğiyle birbirleriyle entegre çalışır ve cümleyi düzenler. Temelde bu mimari üzerine kuruludur</p>
+    <p>Biz demoları oluşturmak için kısıtlı iki farklı özellik bakımından iki farklı model eğiitik (demoda örnek için tek bir özellik bakımından incelenir) özellik sayısı arttırılırsa daha kapsamlı ve hassas bir inceleme yapılmış olur. Projenin temel dayanak noktası irrasyonel insan beyninin biliçüstü düşünerek anlamlandıramadığı ancak anlam bütünlüğü ve duygu niteliği bakımından çok fark ettiren küçük değişimleri makine öğrenimi ve yapay zeka destekli algoritmalar aracılığıyla yorumlayıp, yakalayıp daha optimize ve güçlü metin bağlamları oluşturmak üzerinedir. Bu açıdan proje dahada geliştirildiği takdirde resmi belge, metin ve e-postalar için oldukça kullanışlı olacaktır. </p>
+</body>
+</html>

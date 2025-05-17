@@ -1,0 +1,112 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Akıllı Yazım Kutusu</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background-color: #121212;
+      color: white;
+      font-family: 'JetBrains Mono', monospace;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+      padding: 20px;
+      position: relative;
+    }
+
+    .container {
+      position: relative;
+      width: 100%;
+      max-width: 600px;
+    }
+
+    .input-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      color: rgba(255,255,255,0.4);
+      pointer-events: none;
+      white-space: pre-wrap;
+      word-break: break-word;
+      padding: 15px;
+      font-size: 1rem;
+      line-height: 1.5;
+      box-sizing: border-box;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 150px;
+      padding: 15px;
+      font-size: 1rem;
+      border-radius: 8px;
+      border: none;
+      outline: none;
+      font-family: inherit;
+      background-color: #1a1a1a;
+      color: white;
+      box-shadow: 0 0 10px #1E90FF, 0 0 20px #1E90FF, 0 0 30px #1E90FF;
+      resize: none;
+      overflow-y: auto;
+      line-height: 1.5;
+      box-sizing: border-box;
+    }
+
+    .alpha-tag {
+      position: absolute;
+      bottom: 10px;
+      left: 10px;
+      font-size: 0.9rem;
+      color: rgba(255, 255, 255, 0.3);
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Yaz ve Tahmini Gör</h1>
+  <div class="container">
+    <div class="input-layer" id="ghostText"></div>
+    <textarea id="inputArea" placeholder="Bir şeyler yaz..."></textarea>
+  </div>
+  <div class="alpha-tag">Alpha ~0.1 Release</div>
+
+  <script>
+    const textarea = document.getElementById("inputArea");
+    const ghost = document.getElementById("ghostText");
+
+    // Yazım kurallarını düzelt
+    function correctSentence(input) {
+      let corrected = input.replace(/\s+/g, ' ').trim(); // fazla boşlukları temizle
+      if (corrected.length > 0) {
+        corrected = corrected.charAt(0).toUpperCase() + corrected.slice(1);
+      }
+      return corrected;
+    }
+
+    // ✅ Tahmin edilecek kelimeyi buradan döndür
+    function tahminEt(kelimeler) {
+      // Bu fonksiyonu sen dolduracaksın
+      // Örnek: return "kelime";
+      return "Merhaba";
+    }
+
+    // Dinamik tahmin ve gösterim
+    textarea.addEventListener("input", () => {
+      const text = textarea.value;
+      const corrected = correctSentence(text);
+      const words = corrected.split(" ");
+      const prediction = tahminEt(words);
+      ghost.textContent = corrected + (prediction ? " " + prediction : "");
+    });
+  </script>
+
+</body>
+</html>

@@ -1,29 +1,26 @@
-import threading
-import flask
-from flask import Flask, render_template
+from flask import Flask, render_template, request, jsonify
+from optimizer import optimizeThis, suggestNew
 
-
-def main(): #! buraya model ile alakalı kodlar gelecek, burası web sitesinin arkaplanı olacak
-    print("Hello World")
-
-mainThread = threading.Thread(target=main) 
-mainThread.start()
-
-
-#* flask app 
 app = Flask(__name__)
 
 @app.route('/')
 def index():
-    return render_template('index.html')
+    return render_template('try.html') # debug try.html
 
-@app.route('/try')
-def try_page():
-    return render_template('try.html')
+@app.route('/optimize', methods=['POST'])
+def optimize():
+    data = request.get_json()
+    original_text = data.get('text', '')
+    optimized_text = optimizeThis(original_text)
+    return jsonify({'optimized': optimized_text})
 
-@app.route('/info')
-def info():
-    return render_template('info.html')
+@app.route('/suggest_new', methods=['POST'])
+def get_suggestion():
+    data = request.get_json()
+    text = data.get('text', '')
+    word = data.get('word', '')
+    suggestion = suggestNew(text, word)
+    return jsonify({'suggestion': suggestion})
 
 if __name__ == '__main__':
     app.run(debug=True)

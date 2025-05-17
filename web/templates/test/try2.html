@@ -1,0 +1,214 @@
+
+<html lang="tr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Akıllı Yazım Kutusu</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+  <style>
+    body {
+      background-color: #121212;
+      color: white;
+      font-family: 'JetBrains Mono', monospace;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: flex-start;
+      height: 100vh;
+      margin: 0;
+      padding: 20px;
+    }
+
+    .container {
+      position: relative;
+      width: 100%;
+      max-width: 600px;
+    }
+
+    .input-layer {
+      position: absolute;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      color: rgba(255,255,255,0.4);
+      pointer-events: none;
+      white-space: pre-wrap;
+      word-break: break-word;
+      padding: 15px;
+      font-size: 1rem;
+      line-height: 1.5;
+      box-sizing: border-box;
+    }
+
+    textarea {
+      width: 100%;
+      min-height: 150px;
+      padding: 15px;
+      font-size: 1rem;
+      border-radius: 8px;
+      border: none;
+      outline: none;
+      font-family: inherit;
+      background-color: #1a1a1a;
+      color: white;
+      box-shadow: 0 0 10px #1E90FF, 0 0 20px #1E90FF, 0 0 30px #1E90FF;
+      resize: none;
+      overflow-y: auto;
+      line-height: 1.5;
+      box-sizing: border-box;
+    }
+
+    .optimized-output {
+      margin-top: 20px;
+      padding: 10px;
+      background-color: #1a1a1a;
+      border: 1px solid #333;
+      border-radius: 8px;
+      white-space: pre-wrap;
+      word-break: break-word;
+      box-shadow: inset 0 0 10px rgba(0,0,0,0.5);
+    }
+
+    .highlight {
+      background: linear-gradient(to right, yellow, gold);
+      color: black;
+      animation: pulse 2s infinite;
+      padding: 2px 4px;
+      border-radius: 4px;
+    }
+
+    @keyframes pulse {
+      0% { box-shadow: 0 0 0px yellow; }
+      50% { box-shadow: 0 0 10px yellow; }
+      100% { box-shadow: 0 0 0px yellow; }
+    }
+
+    .custom-context-menu {
+      position: absolute;
+      background-color: #1e1e1e;
+      border: 1px solid #333;
+      border-radius: 10px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.6);
+      padding: 8px 0;
+      z-index: 9999;
+      display: none;
+      min-width: 200px;
+    }
+
+    .custom-context-menu button {
+      background: none;
+      border: none;
+      color: white;
+      font-family: inherit;
+      font-size: 1rem;
+      padding: 10px 20px;
+      width: 100%;
+      text-align: left;
+      cursor: pointer;
+    }
+
+    .custom-context-menu button:hover {
+      background-color: #2a2a2a;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Yaz ve Tahmini Gör</h1>
+  <div class="container">
+    <div class="input-layer" id="ghostText"></div>
+    <textarea id="inputArea" placeholder="Bir şeyler yaz..."></textarea>
+    <div class="optimized-output" id="optimizedOutput">Optimizasyon sonucu burada görünecek...</div>
+  </div>
+
+  <div class="alpha-tag">Alpha ~0.1 Release</div>
+
+  <div id="contextMenu" class="custom-context-menu">
+    <button onclick="optimizeText()">✨ Optimize Et</button>
+    <button onclick="fixPunctuation()">✅ Noktalama İşaretlerini Düzelt</button>
+    <button onclick="copyText()">📋 Kopyala</button>
+  </div>
+
+  <script>
+    const textarea = document.getElementById("inputArea");
+    const ghost = document.getElementById("ghostText");
+    const output = document.getElementById("optimizedOutput");
+    const contextMenu = document.getElementById("contextMenu");
+
+    function correctSentence(input) {
+      let corrected = input.replace(/\s+/g, ' ').trim();
+      if (corrected.length > 0) {
+        corrected = corrected.charAt(0).toUpperCase() + corrected.slice(1);
+      }
+      return corrected;
+    }
+
+    function tahminEt(kelimeler) {
+      return "Merhaba";
+    }
+
+    textarea.addEventListener("input", () => {
+      const text = textarea.value;
+      const corrected = correctSentence(text);
+      const words = corrected.split(" ");
+      const prediction = tahminEt(words);
+      ghost.textContent = corrected + (prediction ? " " + prediction : "");
+
+      fetch("/optimize", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ text })
+      })
+      .then(res => res.json())
+      .then(data => {
+        output.innerHTML = data.map(item => {
+          if (item.original !== item.corrected) {
+            return `<span class="highlight">${item.corrected}</span>`;
+          } else {
+            return item.corrected;
+          }
+        }).join(" ");
+      });
+    });
+
+    // Context Menu
+    textarea.addEventListener("contextmenu", function (e) {
+      e.preventDefault();
+      contextMenu.style.top = `${e.pageY}px`;
+      contextMenu.style.left = `${e.pageX}px`;
+      contextMenu.style.display = "block";
+    });
+
+    document.addEventListener("click", function () {
+      contextMenu.style.display = "none";
+    });
+
+    function getSelectedText() {
+      const start = textarea.selectionStart;
+      const end = textarea.selectionEnd;
+      return textarea.value.substring(start, end);
+    }
+
+    function optimizeText() {
+      const selectedText = getSelectedText();
+      console.log("Optimize Et:", selectedText);
+    }
+
+    function fixPunctuation() {
+      const selectedText = getSelectedText();
+      console.log("Noktalama Düzelt:", selectedText);
+    }
+
+    function copyText() {
+      const selectedText = getSelectedText();
+      navigator.clipboard.writeText(selectedText).then(() => {
+        alert("Kopyalandı!");
+      });
+    }
+  </script>
+
+</body>
+</html>
+"""
+
