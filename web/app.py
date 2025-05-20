@@ -23,4 +23,4 @@ def get_suggestion():
     return jsonify({'suggestion': suggestion})
 
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run(debug=True) 

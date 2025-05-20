@@ -11,36 +11,39 @@ from PyQt5.QtGui import QPainter
 
 
 # API Key'i gir
-client = genai.Client(api_key="please read 'README.MD'")
+try:
+    client = genai.Client(api_key="please read 'README.MD'")
 
 
-def optimizeThis(text):
-    response = client.models.generate_content(
-        model="gemini-2.0-flash",
-        contents=f'''
-        SANA AZ SONRA VERECEĞİM CÜMLEYİ, OPTİMİZE ET,
-        NOKTALAMA İŞARETLİNİ VE YAZIM KURALLARINI DÜZELT,
-        CÜMLENİN DÜZELTİLMİŞ HALİNİ SADECE CEVAP OLARAK DÖNDÜR
-        düzletilecek cümle : {text}
-        ''',
-    )
-    return response.text
+    def optimizeThis(text):
+        response = client.models.generate_content(
+            model="gemini-2.0-flash",
+            contents=f'''
+            SANA AZ SONRA VERECEĞİM CÜMLEYİ, OPTİMİZE ET,
+            NOKTALAMA İŞARETLİNİ VE YAZIM KURALLARINI DÜZELT,
+            CÜMLENİN DÜZELTİLMİŞ HALİNİ SADECE CEVAP OLARAK DÖNDÜR
+            düzletilecek cümle : {text}
+            ''',
+        )
+        return response.text
 
 
-def highlight_changes(original, optimized):
-    original_words = original.split()
-    optimized_words = optimized.split()
+    def highlight_changes(original, optimized):
+        original_words = original.split()
+        optimized_words = optimized.split()
 
-    highlighted_text = ""
-    for o_word, opt_word in zip(original_words, optimized_words):
-        if o_word != opt_word:
+        highlighted_text = ""
+        for o_word, opt_word in zip(original_words, optimized_words):
+            if o_word != opt_word:
+                highlighted_text += f'<span style="background-color: #2196F3; color: white;">{opt_word}</span> '
+            else:
+                highlighted_text += opt_word + ' '
+        for opt_word in optimized_words[len(original_words):]:
             highlighted_text += f'<span style="background-color: #2196F3; color: white;">{opt_word}</span> '
-        else:
-            highlighted_text += opt_word + ' '
-    for opt_word in optimized_words[len(original_words):]:
-        highlighted_text += f'<span style="background-color: #2196F3; color: white;">{opt_word}</span> '
 
-    return highlighted_text
+        return highlighted_text
+except:
+    print("EĞER KENDİNİZ DERLİYORSANIZ OPENAI API ANAHTARINZII GİRMENİZ GEREKMEKTEDİR")
 
 
 class LoadingCircle(QWidget):

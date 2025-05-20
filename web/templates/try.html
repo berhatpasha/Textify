@@ -224,14 +224,17 @@
             margin-top: 20px;
             outline: none;
             box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            transition: 1s;
         }
 
         #copyButton:hover {
-            background-color: #4169E1; /* Biraz daha koyu mavi */
+            background-color:rgb(93, 121, 204); /* Biraz daha koyu mavi */
+            transition 0.5s;
         }
 
         #copyButton:active {
-            background-color: #0000CD; /* Daha da koyu mavi */
+            background-color:rgb(29, 81, 150); /* Daha da koyu mavi */
+            transition 1s;
         }
 
         #inputArea span {
@@ -279,16 +282,13 @@
         let typingTimer;
         let hasText = false;
 
-        // Autofill için kelime listesi
-        const listxyz = []; // Kendi listenizi buraya ekleyin
+        const listxyz = []; // debug => deaktif edildi
 
-        // Autofill için değişkenler
         let currentInput = "";
         let currentWord = "";
         let predictedCompletion = "";
-        let isAutofillActive = true; // Autofill'in aktif olup olmadığını kontrol eden bayrak
+        let isAutofillActive = true; 
 
-        // Öneri kelimeleri saklamak için bir değişken
         let suggestedWord = null;
 
         function correctForDisplay(input) {
@@ -576,8 +576,6 @@
             }
         });
 
-        // İlk yüklemede bir kere optimizasyonu başlatma (isteğe bağlı olarak kaldırılabilir)
-        // optimizeAndUpdate();
 
     </script>
 
