@@ -36,7 +36,8 @@ client = genai.Client(api_key="*")
 ```
 https://aistudio.google.com/apikey sayfasından aldığınız anahtarı buraya girerek projeyi kendi bilgisayarınızda çalıştırabilirsiniz.
 
-Çalıştırmadan önce her version için koyduğumuz (op.) 'requirements' dosyası aracılığıyla kütüphaneleri indirebilirsiniz => `pip install -r requirements.txt` veya `pip3 install -r requirements.txt` (eğer debian veya arch tabanlı bir sistem kullanıyorsanız şunu denemeniz gerekebilir : `--break-system-packages`)
+Çalıştırmadan önce her version için koyduğumuz (op.) 'requirements' dosyası aracılığıyla kütüphaneleri indirebilirsiniz => `pip install -r requirements.txt` veya `pip3 install -r requirements.txt` (eğer debian veya arch tabanlı bir sistem kullanıyorsanız şunu denemeniz gerekebilir : `--break-system-packages`) Ayrıca, api entegrasyonu için : `pip install -q -U google-genai
+`
 
 <br>
 

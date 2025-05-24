@@ -1,3 +1,4 @@
+#* resmiyet modelidir
 ##! *
 ##! Bu kısım inceleme modellerinden birinin örneğidir, bu api ile entegre çalışacak olan 
 ##! modellerin her birinin neye benzeyeceğini anlamanız için yardımcı olacaktır.

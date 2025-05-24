@@ -1,0 +1,7 @@
+PyQt5>=5.15.10
+pynput>=1.7.6
+google-generativeai>=0.4.0
+scikit-learn==1.6.1
+keyboard
+pyautogui
+openai

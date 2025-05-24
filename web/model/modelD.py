@@ -1,0 +1,6 @@
+#* duygusallık modelidir
+#.
+#..
+#...
+
+

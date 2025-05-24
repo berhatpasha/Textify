@@ -1,6 +1,6 @@
 from google import genai
 from key import APIKEY #* api anahtarı buradan çekilir
-from model.model import radar
+from model.modelR import radar
 
 
 #! API erişimidir
