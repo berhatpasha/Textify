@@ -15,7 +15,11 @@ from sklearn.metrics import mean_squared_error
 #data = pd.read_excel('resmiyet.xlsx')
 # data = pd.read_excel('resmiyetV2.xlsx')
 print("verileri okunuyor")
-data = pd.read_excel('web/model/resmiyetV2.xlsx')
+data = pd.read_excel('model/resmiyetV2.xlsx') #! bu kısım projeyi nereden çalıştırdığınıza göre değişir
+#! Eğer Textify üst klasöründen başlatıyorsanız web/model/resmiyetV2.xlsx kullanmayı deneyin
+#! Bazı durumlarda doğrudan terminalden başlattığınız takdirde resmiyetV2.xlsx yeterlidir
+#! windows için model\\resmiyetV2.xlsx olarak portlayınız
+
 print("veriler okundu")
 
 print("örnek model eğitiliyor")
@@ -51,6 +55,7 @@ from difflib import get_close_matches
 def reWrite(cumle, futures, esik=0.85): ## indirgeme modülü
     kelimeler = cumle.split()
     duzeltilmis_kelimeler = []
+
 
     for kelime in kelimeler:
         yakin_kelimeler = get_close_matches(kelime, futures, n=1, cutoff=esik)
