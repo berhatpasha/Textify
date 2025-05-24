@@ -42,7 +42,7 @@ keyboard.add_hotkey('ctrl+alt+o', capture)
 #! API erişimidir
 #! Yürütülebilir versiyonlarda hazır girilidir
 #! Eğer kendiniz derliyorsanız, googleGenai API anahtarınızı buraya girin
-client = genai.Client(api_key="AIzaSyDVN386y_WYLyzuV3iygXVdaUJJvRHZs4Y")
+client = genai.Client(api_key="*")
 
 def suggestNew(text,word):
     response = client.models.generate_content(

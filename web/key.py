@@ -1,2 +1,2 @@
-APIKEY = "AIzaSyDVN386y_WYLyzuV3iygXVdaUJJvRHZs4Y" #! eğer kendiniz derliyorsanız, =>
+APIKEY = "" #! eğer kendiniz derliyorsanız, =>
 #! googleGenai API anahtarınızı buraya girin

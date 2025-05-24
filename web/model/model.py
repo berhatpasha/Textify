@@ -4,7 +4,7 @@
 
 import sklearn
 
-#* eğitim kısmı 
+#* eğitim kısmı (resmiyet özniteliği için örnek modeldir)
 import pandas as pd
 import numpy as np
 from sklearn.feature_extraction.text import TfidfVectorizer
