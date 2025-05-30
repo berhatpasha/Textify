@@ -7,6 +7,7 @@ app = Flask(__name__)
 def index():
     return render_template('try.html') # debug try.html
 
+
 @app.route('/optimize', methods=['POST'])
 def optimize():
     data = request.get_json()

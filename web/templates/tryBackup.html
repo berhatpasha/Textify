@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Akıllı Yazım Kutusu</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #121212;
+            color: white;
+            font-family: 'JetBrains Mono', monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            padding: 20px;
+            position: relative;
+        }
+
+        .container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-top: 20px; /* Logodan sonra boşluk */
+            transition: margin-top 0.5s ease-in-out; /* Container'ın aşağı kayması için */
+        }
+
+        .container-shifted {
+            margin-top: 80px; /* Küçülmüş logonun altına kaydır */
+        }
+
+        .input-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            color: rgba(255,255,255,0.4);
+            pointer-events: none;
+            white-space: pre-wrap;
+            word-break: break-word;
+            padding: 15px;
+            font-size: 1rem;
+            line-height: 1.5;
+            box-sizing: border-box;
+            display: none !important;
+        }
+
+        #hiddenInputArea {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0; /* Görünmez yap */
+            pointer-events: auto; /* Olayları yakalaması için */
+            z-index: 1; /* inputArea'nın üzerinde olsun */
+            font-size: 1rem;
+            line-height: 1.5;
+            box-sizing: border-box;
+            padding: 15px;
+            font-family: inherit;
+            background-color: transparent;
+            color: transparent;
+            border: none;
+            outline: none;
+            resize: none;
+            overflow-y: auto;
+        }
+
+        #inputArea {
+            width: 100%;
+            min-height: 150px;
+            padding: 15px;
+            font-size: 1rem;
+            border-radius: 8px;
+            border: none;
+            outline: none;
+            font-family: inherit;
+            background-color: #1a1a1a;
+            color: white;
+            box-shadow: 0 0 10px #1E90FF, 0 0 20px #1E90FF, 0 0 30px #1E90FF;
+            resize: none;
+            overflow-y: auto;
+            line-height: 1.5;
+            box-sizing: border-box;
+            white-space: pre-wrap;
+            word-break: break-word;
+            caret-color: white; /* İmleç rengi */
+            text-align: center; /* Başlangıçta ortala */
+            color: rgba(255, 255, 255, 0.6); /* Başlangıç rengi */
+            transition: height 0.5s ease-in-out; /* Yazı alanı yüksekliği için geçiş */
+        }
+
+        #inputArea:focus {
+            text-align: left; /* Odaklanınca sola hizala */
+            color: white; /* Odaklanınca normal renk */
+        }
+
+        .alpha-tag {
+            position: absolute;
+            bottom: 50px;
+            left: 10px;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        #mainLogo {
+            position: absolute;
+            top: 55%;
+            left: 50%;
+            transform: translate(-50%, -200%);
+            width: 150px;
+            height: 150px;
+            z-index: 10;
+            opacity: 0.8;
+            background: url("{{ url_for('static', filename='images/main.png') }}") no-repeat center center;
+            background-size: contain;
+            box-shadow: 0 0 10px rgba(30, 144, 255, 0.7), 0 0 20px rgba(30, 144, 255, 0.7), 0 0 30px rgba(30, 144, 255, 0.7);
+            border-radius: 100%;
+            transition: all 0.5s ease-in-out; /* Animasyon için geçiş */
+            margin-bottom: 30px;
+        }
+
+        .logo-small {
+            top: 20px; /* Üstten boşluk */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 50px;
+            opacity: 1;
+            box-shadow: 0 0 5px rgba(30, 144, 255, 0.7);
+        }
+
+        #mainTitle {
+            margin-top: 150px; /* Logodan sonra boşluk */
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        .title-hidden {
+            opacity: 0;
+        }
+
+        .highlighted {
+            background-color: #87CEFA; /* Açık mavi */
+            color: black; /* Üzerindeki metnin okunurluğu için */
+            padding: 0.1em 0.3em; /* Kenarlarda boşluk */
+            border-radius: 0.2em; /* Köşeleri yuvarlak yapabiliriz */
+            cursor: pointer;
+            transition: box-shadow 0.3s ease-in-out; /* Yumuşak geçiş */
+        }
+
+        .highlighted:hover {
+            box-shadow: 0 0 5px white; /* Beyaz çerçeve parlama efekti */
+        }
+
+        .suggestion-area {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #1a1a1a;
+            border-radius: 5px;
+            color: white;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .suggestion-text {
+            flex-grow: 1;
+            margin-right: 10px;
+        }
+
+        .regenerate-button {
+            background-color: #333;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .regenerate-button:hover {
+            background-color: #555;
+        }
+
+        .scanning-animation {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #1E90FF;
+            margin-left: 5px;
+            animation: pulse 1s infinite alternate;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 0.3;
+                transform: scale(0.8);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1.2);
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        #copyButton {
+            background-color: #1E90FF; /* Temaya uygun mavi */
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-top: 20px;
+            outline: none;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            transition: 1s;
+        }
+
+        #copyButton:hover {
+            background-color:rgb(93, 121, 204); /* Biraz daha koyu mavi */
+            transition 0.5s;
+        }
+
+        #copyButton:active {
+            background-color:rgb(29, 81, 150); /* Daha da koyu mavi */
+            transition 1s;
+        }
+
+        #inputArea span {
+            transition: box-shadow 0.3s ease-in-out;
+            cursor: default; /* Metin seçilebilirliğini koru */
+            padding: 0.1em 0.3em; /* Kelimeler arası boşluğu koru */
+            border-radius: 0.2em;
+        }
+
+        #inputArea span:hover {
+            box-shadow: 0 0 5px white;
+            cursor: pointer; /* Üzerine gelindiğinde tıklanabilir olduğunu belirt */
+        }
+    </style>
+</head>
+<body>
+
+    <img src='{{ url_for('static', filename='images/main.png') }}' class="logo-overlay" id="mainLogo" />
+    <h1 id="mainTitle">Textify</h1>
+    <div class="container">
+        <div id="inputArea" contenteditable="true" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">Yazmaya başla</div>
+        <textarea id="hiddenInputArea" class="hidden"></textarea>
+        <div id="suggestionArea" class="suggestion-area hidden">
+            <span id="suggestionText"></span>
+            <button id="regenerateButton" class="regenerate-button hidden">Regenerate</button>
+            <span id="scanning" class="">Scanning<span class="scanning-animation"></span><span class="scanning-animation" style="animation-delay: 0.2s;"></span><span class="scanning-animation" style="animation-delay: 0.4s;"></span></span>
+        </div>
+    </div>
+    <button id="copyButton">Kopyala</button>
+    <div class="alpha-tag">---------------------<br>Beta ~0.1 Release<br><br>TÜBİTAK 4006<br>DEVLET BAHÇELİ FEN LİSESİ<br><br>DANIŞMAN ÖĞRETMENLER;<br>ARDA ÜLGER<br><br>GÖREV ALAN ÖĞRENCİLER;<br>BERAT BAYRAKTAR<br>AYBERK EFE YALÇIN<br>AKİF EREN AKKUŞ<br>-------------------
+    </div>
+
+<script>
+        const inputArea = document.getElementById("inputArea");
+        const hiddenInputArea = document.getElementById("hiddenInputArea");
+        const suggestionArea = document.getElementById("suggestionArea");
+        const suggestionTextElement = document.getElementById("suggestionText");
+        const regenerateButton = document.getElementById("regenerateButton");
+        const scanningElement = document.getElementById("scanning");
+        const copyButton = document.getElementById("copyButton");
+        const mainLogo = document.getElementById("mainLogo");
+        const mainTitle = document.getElementById("mainTitle");
+        const container = document.querySelector(".container");
+        let lastOptimizedText = "";
+        let typingTimer;
+        let hasText = false;
+
+        const listxyz = []; // debug => deaktif edildi
+
+        let currentInput = "";
+        let currentWord = "";
+        let predictedCompletion = "";
+        let isAutofillActive = true;
+
+        let suggestedWord = null;
+
+        function correctForDisplay(input) {
+            let corrected = input.replace(/\s+/g, ' ').trim();
+            if (corrected.length > 0) {
+                corrected = corrected.charAt(0).toUpperCase() + corrected.slice(1);
+            }
+            return corrected;
+        }
+
+        function predictCompletion(text) {
+            if (!isAutofillActive) {
+                return "";
+            }
+            const words = text.split(/\s+/);
+            const lastWord = words[words.length - 1];
+            if (lastWord && lastWord.length > 0) {
+                const matches = listxyz.filter(kelime =>
+                    kelime.toLowerCase().startsWith(lastWord.toLowerCase()) &&
+                    kelime.toLowerCase() !== lastWord.toLowerCase()
+                );
+                return matches.length > 0 ? matches[0].slice(lastWord.length) : "";
+            }
+            return "";
+        }
+
+        function resetAutofill() {
+            predictedCompletion = "";
+            currentWord = "";
+            currentInput = "";
+        }
+
+        inputArea.addEventListener("focus", () => {
+            if (!hasText && inputArea.textContent === "Yazmaya başla") {
+                inputArea.textContent = "";
+                inputArea.style.textAlign = "left";
+                inputArea.style.color = "white";
+                mainLogo.classList.add("logo-small");
+                mainTitle.classList.add("title-hidden");
+                container.classList.add("container-shifted");
+                isAutofillActive = true;
+            }
+        });
+
+        inputArea.addEventListener("blur", () => {
+            if (!inputArea.textContent.trim()) {
+                inputArea.textContent = "Yazmaya başla";
+                inputArea.style.textAlign = "center";
+                inputArea.style.color = "rgba(255, 255, 255, 0.6)";
+                hasText = false;
+                suggestionArea.classList.add("hidden");
+                resetAutofill();
+                mainLogo.classList.remove("logo-small");
+                mainTitle.classList.remove("title-hidden");
+                container.classList.remove("container-shifted");
+            } else {
+                resetAutofill();
+            }
+            isAutofillActive = false;
+        });
+
+        inputArea.addEventListener('input', () => {
+            const currentText = inputArea.textContent;
+            hiddenInputArea.value = currentText;
+            hasText = currentText.trim().length > 0;
+            currentInput = currentText;
+
+            const words = currentText.split(/\s+/);
+            currentWord = words[words.length - 1];
+            predictedCompletion = predictCompletion(currentText);
+
+            if (hasText) {
+                suggestionArea.classList.remove("hidden");
+                suggestionTextElement.textContent = "";
+                regenerateButton.classList.add("hidden");
+                scanningElement.classList.remove("hidden");
+                clearTimeout(typingTimer);
+                typingTimer = setTimeout(optimizeAndUpdate, 3000);
+            } else {
+                suggestionArea.classList.add("hidden");
+                suggestedWord = null;
+                resetAutofill();
+            }
+        });
+
+        inputArea.addEventListener('keydown', (event) => {
+            if (event.key === 'Tab' && predictedCompletion) {
+                event.preventDefault();
+                const currentText = inputArea.textContent;
+                const words = currentText.split(/\s+/);
+                words[words.length - 1] += predictedCompletion;
+                inputArea.textContent = words.join(' ');
+                const range = document.createRange();
+                const sel = window.getSelection();
+                range.selectNodeContents(inputArea);
+                range.collapse(false);
+                sel.removeAllRanges();
+                sel.addRange(range);
+                resetAutofill();
+            }
+        });
+
+        function optimizeAndUpdate() {
+            isAutofillActive = false;
+            resetAutofill();
+            const text = inputArea.textContent;
+            if (text.trim()) {
+                fetch('/optimize', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ text: text })
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            console.error('HTTP Hatası:', response.status);
+                            suggestionTextElement.textContent = `HTTP Hatası: ${response.status}`;
+                            regenerateButton.classList.add("hidden");
+                            scanningElement.classList.add("hidden");
+                            suggestedWord = null;
+                            isAutofillActive = true;
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        highlightDifferences(text, data.optimized);
+                        lastOptimizedText = data.optimized;
+                        if (data.suggestion && data.suggestion !== '#' && data.suggestion !== clickedOptimizedWord) {
+                            suggestionTextElement.textContent = `Şunu dene: ${data.suggestion}`;
+                            regenerateButton.classList.remove("hidden");
+                            suggestedWord = data.suggestion;
+                        } else if (data.suggestion === '#') {
+                            suggestionTextElement.textContent = "Öneri bulunamadı.";
+                            regenerateButton.classList.add("hidden");
+                            suggestedWord = null;
+                        } else {
+                            suggestionTextElement.textContent = "";
+                            regenerateButton.classList.add("hidden");
+                            suggestedWord = null;
+                        }
+                        scanningElement.classList.add("hidden");
+                        setTimeout(() => {
+                            isAutofillActive = true;
+                        }, 150);
+                    })
+                    .catch((error) => {
+                        console.error('Optimizasyon Hatası:', error);
+                        suggestionTextElement.textContent = "Optimizasyon sırasında bir hata oluştu.";
+                        regenerateButton.classList.add("hidden");
+                        scanningElement.classList.add("hidden");
+                        suggestedWord = null;
+                        isAutofillActive = true;
+                        resetAutofill();
+                    });
+            } else {
+                suggestionArea.classList.add("hidden");
+                suggestedWord = null;
+                resetAutofill();
+                isAutofillActive = true;
+            }
+        }
+
+        function highlightDifferences(original, optimized) {
+            const originalWords = original.split(/\s+/);
+            const optimizedWords = optimized.split(/\s+/);
+            let newInnerHTML = "";
+            let originalIndex = 0;
+            let optimizedIndex = 0;
+
+            while (originalIndex < originalWords.length || optimizedIndex < optimizedWords.length) {
+                if (originalIndex < originalWords.length && optimizedIndex < optimizedWords.length && originalWords[originalIndex] === optimizedWords[optimizedIndex]) {
+                    newInnerHTML += `<span data-original="${originalWords[originalIndex]}" data-optimized="${optimizedWords[optimizedIndex]}">${originalWords[originalIndex]}</span> `;
+                    originalIndex++;
+                    optimizedIndex++;
+                } else if (optimizedIndex < optimizedWords.length) {
+                    const optimizedWord = optimizedWords[optimizedIndex];
+                    const originalWord = originalWords[originalIndex] || '';
+                    newInnerHTML += `<span class="highlighted" data-original="${originalWord}" data-optimized="${optimizedWord}" title="Alternatif sun">${optimizedWord}</span> `;
+                    optimizedIndex++;
+                    if (originalIndex < originalWords.length) {
+                        originalIndex++;
+                    }
+                } else if (originalIndex < originalWords.length) {
+                    newInnerHTML += `<span data-original="${originalWords[originalIndex]}" data-optimized="">${originalWords[originalIndex]}</span> `;
+                    originalIndex++;
+                }
+            }
+            inputArea.innerHTML = newInnerHTML;
+        }
+
+        copyButton.addEventListener('click', () => {
+            const textToCopy = inputArea.textContent;
+            navigator.clipboard.writeText(textToCopy)
+                .then(() => {
+                    alert('Metin panoya kopyalandı!');
+                })
+                .catch((err) => {
+                    console.error('Panoya kopyalama başarısız oldu:', err);
+                    alert('Metin kopyalanamadı!');
+                });
+        });
+
+        inputArea.addEventListener('mouseover', (event) => {
+            if (event.target.tagName === 'SPAN' && event.target.classList.contains('highlighted')) {
+                event.target.style.boxShadow = '0 0 5px white';
+                event.target.style.cursor = 'pointer';
+            }
+        });
+
+        inputArea.addEventListener('mouseout', (event) => {
+            if (event.target.tagName === 'SPAN' && event.target.classList.contains('highlighted')) {
+                event.target.style.boxShadow = '';
+                event.target.style.cursor = 'default';
+            }
+        });
+
+        inputArea.addEventListener('mousedown', (event) => {
+            isAutofillActive = false;
+            resetAutofill();
+            if (event.target.tagName === 'SPAN' && event.target.classList.contains('highlighted')) {
+                const clickedOptimizedWord = event.target.dataset.optimized;
+                const clickedOriginalWord = event.target.dataset.original;
+                const currentText = inputArea.textContent;
+                const clickedSpan = event.target;
+
+                scanningElement.classList.remove("hidden");
+                suggestionTextElement.textContent = "";
+                regenerateButton.classList.add("hidden");
+
+                fetch('/suggest_new', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ text: currentText, word: clickedOptimizedWord })
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        scanningElement.classList.add("hidden");
+                        if (data.suggestion && data.suggestion !== '#' && data.suggestion !== clickedOptimizedWord) {
+                            clickedSpan.textContent = data.suggestion;
+                            clickedSpan.dataset.optimized = data.suggestion;
+                            const range = document.createRange();
+                            const sel = window.getSelection();
+                            range.setStartAfter(clickedSpan);
+                            range.collapse(true);
+                            sel.removeAllRanges();
+                            sel.addRange(range);
+                        } else if (data.suggestion === '#') {
+                            if (clickedSpan.nextSibling && clickedSpan.nextSibling.nodeType === 3 && clickedSpan.nextSibling.textContent.startsWith(' ')) {
+                                clickedSpan.parentNode.removeChild(clickedSpan.nextSibling);
+                            }
+                            clickedSpan.parentNode.removeChild(clickedSpan);
+                            const range = document.createRange();
+                            const sel = window.getSelection();
+                            if (clickedSpan.previousSibling) {
+                                range.setStartAfter(clickedSpan.previousSibling);
+                            } else if (inputArea.firstChild) {
+                                range.setStartBefore(inputArea.firstChild);
+                            }
+                            range.collapse(true);
+                            sel.removeAllRanges();
+                            sel.addRange(range);
+                        } else {
+                            alert('Yeni bir alternatif bulunamadı.');
+                        }
+                        setTimeout(() => {
+                            isAutofillActive = true;
+                        }, 150);
+                    })
+                    .catch(error => {
+                        console.error('Yeni Öneri Hatası:', error);
+                        alert('Yeni bir alternatif alınırken hata oluştu.');
+                        scanningElement.classList.add("hidden");
+                        setTimeout(() => {
+                            isAutofillActive = true;
+                        }, 150);
+                    });
+            } else {
+                setTimeout(() => {
+                    isAutofillActive = true;
+                }, 150);
+            }
+        });
+
+
+    </script>
+
+</body>
+</html>

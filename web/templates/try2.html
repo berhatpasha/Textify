@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Dosya Optimizasyonu - Akıllı Yazım Kutusu</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #121212;
+            color: white;
+            font-family: 'JetBrains Mono', monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh; /* Ekranın tamamını kapla */
+            margin: 0;
+            padding: 20px;
+        }
+
+        .container {
+            width: 100%;
+            max-width: 800px; /* Daha geniş bir alan için */
+            background-color: #1a1a1a;
+            border-radius: 8px;
+            padding: 30px;
+            box-shadow: 0 0 15px rgba(30, 144, 255, 0.5); /* Hafif mavi gölge */
+            text-align: center;
+        }
+
+        h1 {
+            font-size: 2.2em;
+            margin-bottom: 30px;
+            color: #1E90FF; /* Başlık rengi */
+        }
+
+        .upload-area {
+            border: 2px dashed #1E90FF; /* Kesikli mavi çerçeve */
+            padding: 40px;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            margin-bottom: 20px;
+        }
+
+        .upload-area:hover {
+            background-color: #2a2a2a;
+        }
+
+        .upload-area p {
+            margin: 0;
+            font-size: 1.1em;
+            color: #ccc;
+        }
+
+        input[type="file"] {
+            display: none; /* Dosya seçme butonunu gizle */
+        }
+
+        #fileName {
+            margin-top: 10px;
+            font-style: italic;
+            color: #aaa;
+        }
+
+        #optimizeButton {
+            background-color: #1E90FF;
+            color: white;
+            border: none;
+            padding: 12px 25px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1rem;
+            margin-top: 20px;
+            outline: none;
+            transition: background-color 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        #optimizeButton:hover {
+            background-color: #007bff;
+            box-shadow: 0 0 15px #1E90FF;
+        }
+
+        #optimizeButton:disabled {
+            background-color: #555;
+            cursor: not-allowed;
+            box-shadow: none;
+        }
+
+        .optimized-output {
+            margin-top: 30px;
+            background-color: #2a2a2a;
+            border-radius: 8px;
+            padding: 20px;
+            text-align: left;
+            min-height: 150px;
+            white-space: pre-wrap; /* Satır sonlarını koru */
+            word-break: break-word; /* Kelime kırılmalarını ayarla */
+            overflow-y: auto;
+            max-height: 400px; /* Belirli bir yükseklikten sonra kaydırma */
+            color: #eee;
+            border: 1px solid #1E90FF; /* Çıktı kutusuna çerçeve */
+        }
+
+        .scanning-animation {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #1E90FF;
+            margin-left: 5px;
+            animation: pulse 1s infinite alternate;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 0.3;
+                transform: scale(0.8);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1.2);
+            }
+        }
+
+        #loadingMessage {
+            margin-top: 20px;
+            font-size: 1.1em;
+            color: #1E90FF;
+            display: none; /* Varsayılan olarak gizli */
+        }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>Dosya Metinlerini Optimize Et</h1>
+        <div class="upload-area" id="uploadArea">
+            <input type="file" id="fileInput" accept=".txt,.docx,.pdf"> <p>Dosyayı buraya sürükle bırak veya tıkla</p>
+            <p id="fileName">Henüz dosya seçilmedi.</p>
+        </div>
+
+        <button id="optimizeButton" disabled>Metni Optimize Et</button>
+
+        <div id="loadingMessage">
+            Metin işleniyor...<span class="scanning-animation"></span><span class="scanning-animation" style="animation-delay: 0.2s;"></span><span class="scanning-animation" style="animation-delay: 0.4s;"></span>
+        </div>
+
+        <div class="optimized-output" id="optimizedOutput">
+            Optimize edilmiş metin burada görünecektir.
+        </div>
+    </div>
+
+    <script>
+        const fileInput = document.getElementById('fileInput');
+        const uploadArea = document.getElementById('uploadArea');
+        const fileNameDisplay = document.getElementById('fileName');
+        const optimizeButton = document.getElementById('optimizeButton');
+        const loadingMessage = document.getElementById('loadingMessage');
+        const optimizedOutput = document.getElementById('optimizedOutput');
+
+        let selectedFile = null;
+
+        // Dosya seçildiğinde veya sürüklendiğinde
+        fileInput.addEventListener('change', handleFiles);
+        uploadArea.addEventListener('click', () => fileInput.click());
+
+        // Sürükle bırak olayları
+        uploadArea.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = '#00FF7F'; /* Parlak yeşil */
+        });
+
+        uploadArea.addEventListener('dragleave', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = '#1E90FF'; /* Eski mavi */
+        });
+
+        uploadArea.addEventListener('drop', (e) => {
+            e.preventDefault();
+            uploadArea.style.borderColor = '#1E90FF';
+            handleFiles(e);
+        });
+
+        function handleFiles(event) {
+            const files = event.dataTransfer ? event.dataTransfer.files : event.target.files;
+            if (files.length > 0) {
+                selectedFile = files[0];
+                fileNameDisplay.textContent = `Seçilen Dosya: ${selectedFile.name}`;
+                optimizeButton.disabled = false;
+            } else {
+                selectedFile = null;
+                fileNameDisplay.textContent = 'Henüz dosya seçilmedi.';
+                optimizeButton.disabled = true;
+            }
+        }
+
+        optimizeButton.addEventListener('click', () => {
+            if (selectedFile) {
+                loadingMessage.style.display = 'block'; // Yükleme mesajını göster
+                optimizedOutput.textContent = ''; // Önceki çıktıyı temizle
+                optimizeButton.disabled = true; // Butonu devre dışı bırak
+
+                const reader = new FileReader();
+
+                reader.onload = function(e) {
+                    const fileContent = e.target.result;
+                    let textToOptimize = '';
+
+                    // Dosya türüne göre içeriği işle
+                    // Şimdilik sadece .txt için metin okuyabiliriz.
+                    // .docx veya .pdf için sunucu tarafında işleme gerekecektir.
+                    if (selectedFile.type === 'text/plain') {
+                        textToOptimize = fileContent;
+                    } else if (selectedFile.type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' || selectedFile.type === 'application/pdf') {
+                        // BURAYA DİKKAT: .docx ve .pdf dosyalarını doğrudan tarayıcıda metne dönüştürmek karmaşıktır.
+                        // Genellikle bu tür dosyaların metin içeriğini çıkarmak için
+                        // Python'da `python-docx` veya `PyPDF2` gibi kütüphaneleri kullanarak
+                        // sunucu tarafında işlem yapmanız gerekir.
+                        // Şimdilik bu tür dosyalarda kullanıcıya bilgi verelim.
+                        optimizedOutput.textContent = "Bu dosya türü için metin çıkarma şu an sadece sunucu tarafında desteklenmektedir. Lütfen bir .txt dosyası yüklemeyi deneyin.";
+                        loadingMessage.style.display = 'none';
+                        optimizeButton.disabled = false;
+                        return;
+                    } else {
+                        optimizedOutput.textContent = "Desteklenmeyen dosya türü. Lütfen bir .txt, .docx veya .pdf dosyası yükleyin.";
+                        loadingMessage.style.display = 'none';
+                        optimizeButton.disabled = false;
+                        return;
+                    }
+
+                    // Sunucuya gönder
+                    fetch('/optimize_file', { // Yeni bir Flask rotası tanımlayacağız
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/json'
+                        },
+                        body: JSON.stringify({ text: textToOptimize })
+                    })
+                    .then(response => {
+                        if (!response.ok) {
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        optimizedOutput.textContent = data.optimized;
+                        loadingMessage.style.display = 'none';
+                        optimizeButton.disabled = false;
+                    })
+                    .catch(error => {
+                        console.error('Optimizasyon Hatası:', error);
+                        optimizedOutput.textContent = `Metin optimize edilirken bir hata oluştu: ${error.message}`;
+                        loadingMessage.style.display = 'none';
+                        optimizeButton.disabled = false;
+                    });
+                };
+
+                // Dosyayı metin olarak oku (şimdilik sadece .txt için)
+                reader.readAsText(selectedFile);
+            }
+        });
+    </script>
+
+</body>
+</html>

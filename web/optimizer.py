@@ -10,18 +10,16 @@ client = genai.Client(api_key=APIKEY)
 
 #* düzenleyici mdodülü
 def hex(text):
-    print('düzenleniyor..')
-    response = client.models.generate_content(
-        model="gemini-2.0-flash",
-        contents=f'''
-        SANA AZ SONRA VERECEĞİM CÜMLEDEKİ GEREKSİZ BOŞLUKLARI KALDIR,
-        KELİMELERİ DÜZENE SOK VE TEK CEVAP OLARAK DÖNDÜR,
-        SAKIN BAŞKA BİR CEVAP DÖNDÜRME CÜMLEDEKİ GEREKSİZ BOŞLUKLARI VE TAB LARI KALDIR SADECE,
-        düzeltilecek cümle : '{text}'
-        ''', #! debug : requesti ayarla
-    )
-    
-    return response.text
+    # return text #! debug: sorun boşluk bırakması deilmiş gereksiz satır atlamasıymış, yani textte sorun yok
+    # front-end yönünden incelenmesi gerekiyor **** önemli --- güncelleme : sorun çözüldü
+
+    flex = text.split(' ')
+    fullText = ''
+    for word in flex:
+        fullText += word + ' '
+        print(f"düzenlenmiş: {fullText}")
+    return fullText
+
 
 # optimizator fonksiyonu
 def optimizeThis(text):
@@ -37,10 +35,12 @@ def optimizeThis(text):
         SONUÇ OLABİLDİĞİNCE DİL VE ANLATIM BAKIMINDAN UYGUN OLMALI VE DUYGU,RESMİYET DURUMUNU İYİCE YANSITMALI,
         ANLAŞILIR BİR CÜMLE YAPISI KURMAK TEMEL AMACIN
         CÜMLENİN DÜZELTİLMİŞ HALİNİ SADECE CEVAP OLARAK DÖNDÜR
+        ASLA KELİMELERİ ES GEÇME 
         düzletilecek cümle : {text}
         ''',
     )
-    
+
+    print(hex(radar(response.text))) # debug
     return hex(radar(response.text))
     # return radar(response.text) ##! BURAYLA DAHA SONRA İLGİLEN -- MODEL GEÇİTİ
     #return response.text

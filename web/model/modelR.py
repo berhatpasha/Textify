@@ -15,19 +15,19 @@ from sklearn.metrics import mean_squared_error
 
 #data = pd.read_excel('resmiyet.xlsx')
 # data = pd.read_excel('resmiyetV2.xlsx')
-print("verileri okunuyor")
-data = pd.read_excel('model/resmiyetV2.xlsx') #! bu kısım projeyi nereden çalıştırdığınıza göre değişir
+print("[R] verileri okunuyor")
+data = pd.read_excel('model/R2.xlsx') #! bu kısım projeyi nereden çalıştırdığınıza göre değişir
 #! Eğer Textify üst klasöründen başlatıyorsanız web/model/resmiyetV2.xlsx kullanmayı deneyin
 #! Bazı durumlarda doğrudan terminalden başlattığınız takdirde resmiyetV2.xlsx yeterlidir
 #! windows için model\\resmiyetV2.xlsx olarak portlayınız
 
-print("veriler okundu")
+print("[R] veriler okundu")
 
-print("örnek model eğitiliyor")
+print("[R] örnek model eğitiliyor")
 vector = TfidfVectorizer()
 x = vector.fit_transform(data['Cümle'])
 y = data["Resmiyet"]
-print("resmiyet modeli hazır durumda")
+print("[R] resmiyet modeli hazır durumda")
 
 x_train, x_test, y_train, y_test = train_test_split(x, y, test_size=0.2, random_state=42)
 
@@ -43,6 +43,7 @@ def prediction(x):
 
 from google import genai
 from key import APIKEY #* api anahtarı buradan çekilir
+#* key bulunamıyorsa /web içerisindekini /web/model kısmına kopyala
 
 #! API erişimidir
 #! Yürütülebilir versiyonlarda hazır girilidir
@@ -111,7 +112,8 @@ def radar(text):
     for i, word in enumerate(search_words):
         if abs(predictions[i] - ort) >= 1:
             alternatif = suggestNew(search_words, word)
-            if alternatif:
+            if alternatif != '''#
+''':
                 new_sentence_list = list(search_words)
                 new_sentence_list[i] = alternatif
                 return " ".join(new_sentence_list)
