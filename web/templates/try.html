@@ -87,8 +87,8 @@
             overflow-y: auto;
             line-height: 1.5;
             box-sizing: border-box;
-            white-space: pre-wrap; /* ÖNEMLİ: Yeni satır karakterlerini korur */
-            word-break: break-word; /* Uzun kelimeleri böler */
+            white-space: pre-wrap;
+            word-break: break-word;
             caret-color: white; /* İmleç rengi */
             text-align: center; /* Başlangıçta ortala */
             color: rgba(255, 255, 255, 0.6); /* Başlangıç rengi */
@@ -147,15 +147,14 @@
         .highlighted {
             background-color: #87CEFA; /* Açık mavi */
             color: black; /* Üzerindeki metnin okunurluğu için */
-            padding: 0.05em 0.2em; /* Biraz azaltılmış kenar boşluğu */
-            border-radius: 0.2em;
+            padding: 0.1em 0.3em; /* Kenarlarda boşluk */
+            border-radius: 0.2em; /* Köşeleri yuvarlak yapabiliriz */
             cursor: pointer;
-            transition: box-shadow 0.3s ease-in-out;
-            display: inline-block; /* Metin içindeki kutu modellemesi için */
+            transition: box-shadow 0.3s ease-in-out; /* Yumuşak geçiş */
         }
 
         .highlighted:hover {
-            box-shadow: 0 0 5px white;
+            box-shadow: 0 0 5px white; /* Beyaz çerçeve parlama efekti */
         }
 
         .suggestion-area {
@@ -215,7 +214,7 @@
         }
 
         #copyButton {
-            background-color: #1E90FF;
+            background-color: #1E90FF; /* Temaya uygun mavi */
             color: white;
             border: none;
             padding: 10px 20px;
@@ -229,27 +228,25 @@
         }
 
         #copyButton:hover {
-            background-color:rgb(93, 121, 204);
-            transition: 0.5s;
+            background-color:rgb(93, 121, 204); /* Biraz daha koyu mavi */
+            transition 0.5s;
         }
 
         #copyButton:active {
-            background-color:rgb(29, 81, 150);
-            transition: 1s;
+            background-color:rgb(29, 81, 150); /* Daha da koyu mavi */
+            transition 1s;
         }
 
-        /* inputArea içindeki span'ler için genel stil (highlighted olmayanlar dahil) */
         #inputArea span {
             transition: box-shadow 0.3s ease-in-out;
-            cursor: default;
-            padding: 0.05em 0.2em; /* highlighted ile aynı padding */
+            cursor: default; /* Metin seçilebilirliğini koru */
+            padding: 0.1em 0.3em; /* Kelimeler arası boşluğu koru */
             border-radius: 0.2em;
-            display: inline-block; /* highlighted ile aynı display */
         }
 
         #inputArea span:hover {
             box-shadow: 0 0 5px white;
-            cursor: pointer;
+            cursor: pointer; /* Üzerine gelindiğinde tıklanabilir olduğunu belirt */
         }
     </style>
 </head>
@@ -354,13 +351,13 @@
         });
 
         inputArea.addEventListener('input', () => {
-            const currentText = inputArea.textContent;
+            const currentText = inputArea.textContent.trim(); // Girişte trim ederek ekstra boşlukları önle
             hiddenInputArea.value = currentText;
-            hasText = currentText.trim().length > 0;
+            hasText = currentText.length > 0;
             currentInput = currentText;
 
-            const words = currentText.split(/\s+/);
-            currentWord = words[words.length - 1];
+            const words = currentText.split(/\s+/).filter(word => word.length > 0); // Boş kelimeleri filtrele
+            currentWord = words[words.length - 1] || '';
             predictedCompletion = predictCompletion(currentText);
 
             if (hasText) {
@@ -381,7 +378,7 @@
             if (event.key === 'Tab' && predictedCompletion) {
                 event.preventDefault();
                 const currentText = inputArea.textContent;
-                const words = currentText.split(/\s+/);
+                const words = currentText.split(/\s+/).filter(word => word.length > 0);
                 words[words.length - 1] += predictedCompletion;
                 inputArea.textContent = words.join(' ');
                 const range = document.createRange();
@@ -397,8 +394,8 @@
         function optimizeAndUpdate() {
             isAutofillActive = false;
             resetAutofill();
-            const text = inputArea.textContent;
-            if (text.trim()) {
+            const text = inputArea.textContent.trim(); // Optimizasyon öncesi trim et
+            if (text) {
                 fetch('/optimize', {
                     method: 'POST',
                     headers: {
@@ -419,8 +416,8 @@
                         return response.json();
                     })
                     .then(data => {
-                        highlightDifferences(text, data.optimized);
-                        lastOptimizedText = data.optimized;
+                        highlightDifferences(text, data.optimized.trim()); // Optimized'ı da trim et
+                        lastOptimizedText = data.optimized.trim();
                         if (data.suggestion && data.suggestion !== '#' && data.suggestion !== clickedOptimizedWord) {
                             suggestionTextElement.textContent = `Şunu dene: ${data.suggestion}`;
                             regenerateButton.classList.remove("hidden");
@@ -456,67 +453,42 @@
             }
         }
 
-        // GÜNCELLENMİŞ highlightDifferences fonksiyonu
         function highlightDifferences(original, optimized) {
-            // Hem kelimeleri hem de boşlukları/yeni satırları yakala
-            const originalParts = original.split(/(\s+)/); // \s+ birden fazla boşluğu yakalar
-            const optimizedParts = optimized.split(/(\s+)/);
-
-            let newInnerHTML = "";
+            const originalWords = original.split(/\s+/).filter(word => word.length > 0); // Boş kelimeleri filtrele
+            const optimizedWords = optimized.split(/\s+/).filter(word => word.length > 0); // Boş kelimeleri filtrele
+            let newInnerHTMLParts = []; // Parçaları array'de topla, sonra join et
             let originalIndex = 0;
             let optimizedIndex = 0;
 
-            while (originalIndex < originalParts.length || optimizedIndex < optimizedParts.length) {
-                const currentOriginal = originalParts[originalIndex] || '';
-                const currentOptimized = optimizedParts[optimizedIndex] || '';
-
-                const isOriginalSpace = /^\s+$/.test(currentOriginal);
-                const isOptimizedSpace = /^\s+$/.test(currentOptimized);
-
-                // Eğer her iki kısım da boşluksa veya aynı metinse (kelime veya boşluk)
-                if (currentOriginal === currentOptimized) {
-                    newInnerHTML += currentOriginal;
+            while (originalIndex < originalWords.length || optimizedIndex < optimizedWords.length) {
+                if (originalIndex < originalWords.length && optimizedIndex < optimizedWords.length && originalWords[originalIndex] === optimizedWords[optimizedIndex]) {
+                    newInnerHTMLParts.push(`<span data-original="${originalWords[originalIndex]}" data-optimized="${optimizedWords[optimizedIndex]}">${originalWords[originalIndex]}</span>`);
                     originalIndex++;
                     optimizedIndex++;
-                }
-                // Eğer optimize edilmiş kısım farklı bir kelimeyse veya orijinalde olmayan bir kelimeyse
-                else if (currentOptimized && !isOptimizedSpace) {
-                    // Orijinaldeki boşlukları atla, eğer yeni bir kelime ekleniyorsa
-                    if (isOriginalSpace) {
-                        originalIndex++; // Orijinal boşluğu tüket
+                } else if (optimizedIndex < optimizedWords.length) {
+                    const optimizedWord = optimizedWords[optimizedIndex];
+                    const originalWord = originalIndex < originalWords.length ? originalWords[originalIndex] : '';
+                    // Eğer optimizedWord boş değilse highlight et
+                    if (optimizedWord.trim()) {
+                        newInnerHTMLParts.push(`<span class="highlighted" data-original="${originalWord}" data-optimized="${optimizedWord}" title="Alternatif sun">${optimizedWord}</span>`);
                     }
-                    newInnerHTML += `<span class="highlighted" data-original="${currentOriginal}" data-optimized="${currentOptimized}" title="Alternatif sun">${currentOptimized}</span>`;
                     optimizedIndex++;
-                    if (!currentOriginal && !isOriginalSpace) { // Orijinalde karşılığı yoksa, sadece optimize edilmişi ekledik
-                        originalIndex++; // Bir sonraki orijinal parçaya geçmek için. (Bunu dikkatli kullan, bazen index kaymasına yol açabilir)
+                    if (originalIndex < originalWords.length) {
+                        originalIndex++;
                     }
-                }
-                // Eğer orijinal kısım optimize edilmişte yoksa (silinmiş kelime)
-                else if (currentOriginal && !isOriginalSpace) {
-                    newInnerHTML += `<span data-original="${currentOriginal}" data-optimized="">${currentOriginal}</span>`; // Silinen kelimeyi highlight etmiyoruz ama göstermek için span içinde
+                } else if (originalIndex < originalWords.length) {
+                    const originalWord = originalWords[originalIndex];
+                    // Eğer originalWord boş değilse ekle
+                    if (originalWord.trim()) {
+                        newInnerHTMLParts.push(`<span data-original="${originalWord}" data-optimized="">${originalWord}</span>`);
+                    }
                     originalIndex++;
-                }
-                // Sadece optimize edilmiş kısımda boşluk varsa ve orijinalde yoksa
-                else if (isOptimizedSpace && !isOriginalSpace) {
-                    newInnerHTML += currentOptimized;
-                    optimizedIndex++;
-                    originalIndex++; // Orijinalde boşluk yoksa, orijinalden de ilerle
-                }
-                // Sadece orijinal kısımda boşluk varsa ve optimize edilmişte yoksa (yani boşluk silinmiş)
-                else if (isOriginalSpace && !isOptimizedSpace) {
-                    originalIndex++;
-                }
-                else { // Beklenmeyen durum veya her ikisi de bitti
-                    originalIndex++;
-                    optimizedIndex++;
                 }
             }
-            inputArea.innerHTML = newInnerHTML;
+            inputArea.innerHTML = newInnerHTMLParts.join(' '); // Parçaları boşlukla birleştir, son boşluk otomatik trim olmaz ama filtreleme sayesinde sorun olmaz
         }
 
         copyButton.addEventListener('click', () => {
-            // `inputArea.textContent` otomatik olarak görünen metni alır,
-            // HTML içindeki span'leri ve diğer etiketleri atlar.
             const textToCopy = inputArea.textContent;
             navigator.clipboard.writeText(textToCopy)
                 .then(() => {
@@ -528,7 +500,6 @@
                 });
         });
 
-        // Mouse olayları için mevcut kodunda problem yoktu, aynen korundu.
         inputArea.addEventListener('mouseover', (event) => {
             if (event.target.tagName === 'SPAN' && event.target.classList.contains('highlighted')) {
                 event.target.style.boxShadow = '0 0 5px white';
@@ -547,9 +518,9 @@
             isAutofillActive = false;
             resetAutofill();
             if (event.target.tagName === 'SPAN' && event.target.classList.contains('highlighted')) {
-                const clickedOptimizedWord = event.target.dataset.optimized;
-                const clickedOriginalWord = event.target.dataset.original; // Bu satır kullanılmıyor gibi görünüyor, istersen kaldırabilirsin.
-                const currentText = inputArea.textContent; // Mevcut görünen metin
+                const clickedOptimizedWord = event.target.dataset.optimized.trim(); // Trim et
+                const clickedOriginalWord = event.target.dataset.original.trim(); // Trim et
+                const currentText = inputArea.textContent.trim(); // Trim et
                 const clickedSpan = event.target;
 
                 scanningElement.classList.remove("hidden");
@@ -561,18 +532,14 @@
                     headers: {
                         'Content-Type': 'application/json'
                     },
-                    body: JSON.stringify({ text: currentText, word: clickedOptimizedWord }) // currentText'i backend'e gönder
+                    body: JSON.stringify({ text: currentText, word: clickedOptimizedWord })
                 })
                     .then(response => response.json())
                     .then(data => {
                         scanningElement.classList.add("hidden");
                         if (data.suggestion && data.suggestion !== '#' && data.suggestion !== clickedOptimizedWord) {
-                            clickedSpan.textContent = data.suggestion;
-                            clickedSpan.dataset.optimized = data.suggestion;
-                            clickedSpan.classList.remove('highlighted'); // Yeni kelime önerisi uygulandığında highlight'ı kaldır
-                            clickedSpan.style.backgroundColor = ''; // Arka plan rengini temizle
-                            clickedSpan.style.color = ''; // Yazı rengini temizle
-
+                            clickedSpan.textContent = data.suggestion.trim(); // Trim et
+                            clickedSpan.dataset.optimized = data.suggestion.trim(); // Trim et
                             const range = document.createRange();
                             const sel = window.getSelection();
                             range.setStartAfter(clickedSpan);
@@ -580,15 +547,19 @@
                             sel.removeAllRanges();
                             sel.addRange(range);
                         } else if (data.suggestion === '#') {
-                            // Kelime silinecekse
-                            // Span'i ve eğer varsa ardından gelen boşluğu kaldır
-                            let nodeToRemove = clickedSpan;
-                            if (clickedSpan.nextSibling && clickedSpan.nextSibling.nodeType === Node.TEXT_NODE && /^\s+$/.test(clickedSpan.nextSibling.textContent)) {
-                                nodeToRemove = clickedSpan.nextSibling; // Boşluğu silmek için işaretle
-                                clickedSpan.parentNode.removeChild(clickedSpan); // Kelimeyi sil
+                            // Sonraki sibling'i kontrol et ve boşlukları temizle
+                            let nextSibling = clickedSpan.nextSibling;
+                            while (nextSibling && nextSibling.nodeType === 3 && !nextSibling.textContent.trim()) {
+                                clickedSpan.parentNode.removeChild(nextSibling);
+                                nextSibling = clickedSpan.nextSibling;
                             }
-                            clickedSpan.parentNode.removeChild(nodeToRemove); // Boşluğu veya kelimeyi sil
-
+                            // Önceki sibling'i kontrol et (opsiyonel, ama tutarlılık için)
+                            let prevSibling = clickedSpan.previousSibling;
+                            while (prevSibling && prevSibling.nodeType === 3 && !prevSibling.textContent.trim()) {
+                                clickedSpan.parentNode.removeChild(prevSibling);
+                                prevSibling = clickedSpan.previousSibling;
+                            }
+                            clickedSpan.parentNode.removeChild(clickedSpan);
                             const range = document.createRange();
                             const sel = window.getSelection();
                             if (clickedSpan.previousSibling) {
@@ -626,3 +597,5 @@
 
 </body>
 </html>
+
+

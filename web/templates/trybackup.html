@@ -1,0 +1,628 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+    <title>Akıllı Yazım Kutusu</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet">
+    <style>
+        body {
+            background-color: #121212;
+            color: white;
+            font-family: 'JetBrains Mono', monospace;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            padding: 20px;
+            position: relative;
+        }
+
+        .container {
+            position: relative;
+            width: 100%;
+            max-width: 600px;
+            margin-top: 20px; /* Logodan sonra boşluk */
+            transition: margin-top 0.5s ease-in-out; /* Container'ın aşağı kayması için */
+        }
+
+        .container-shifted {
+            margin-top: 80px; /* Küçülmüş logonun altına kaydır */
+        }
+
+        .input-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            color: rgba(255,255,255,0.4);
+            pointer-events: none;
+            white-space: pre-wrap;
+            word-break: break-word;
+            padding: 15px;
+            font-size: 1rem;
+            line-height: 1.5;
+            box-sizing: border-box;
+            display: none !important;
+        }
+
+        #hiddenInputArea {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0; /* Görünmez yap */
+            pointer-events: auto; /* Olayları yakalaması için */
+            z-index: 1; /* inputArea'nın üzerinde olsun */
+            font-size: 1rem;
+            line-height: 1.5;
+            box-sizing: border-box;
+            padding: 15px;
+            font-family: inherit;
+            background-color: transparent;
+            color: transparent;
+            border: none;
+            outline: none;
+            resize: none;
+            overflow-y: auto;
+        }
+
+        #inputArea {
+            width: 100%;
+            min-height: 150px;
+            padding: 15px;
+            font-size: 1rem;
+            border-radius: 8px;
+            border: none;
+            outline: none;
+            font-family: inherit;
+            background-color: #1a1a1a;
+            color: white;
+            box-shadow: 0 0 10px #1E90FF, 0 0 20px #1E90FF, 0 0 30px #1E90FF;
+            resize: none;
+            overflow-y: auto;
+            line-height: 1.5;
+            box-sizing: border-box;
+            white-space: pre-wrap; /* ÖNEMLİ: Yeni satır karakterlerini korur */
+            word-break: break-word; /* Uzun kelimeleri böler */
+            caret-color: white; /* İmleç rengi */
+            text-align: center; /* Başlangıçta ortala */
+            color: rgba(255, 255, 255, 0.6); /* Başlangıç rengi */
+            transition: height 0.5s ease-in-out; /* Yazı alanı yüksekliği için geçiş */
+        }
+
+        #inputArea:focus {
+            text-align: left; /* Odaklanınca sola hizala */
+            color: white; /* Odaklanınca normal renk */
+        }
+
+        .alpha-tag {
+            position: absolute;
+            bottom: 50px;
+            left: 10px;
+            font-size: 0.9rem;
+            color: rgba(255, 255, 255, 0.3);
+        }
+
+        #mainLogo {
+            position: absolute;
+            top: 55%;
+            left: 50%;
+            transform: translate(-50%, -200%);
+            width: 150px;
+            height: 150px;
+            z-index: 10;
+            opacity: 0.8;
+            background: url("{{ url_for('static', filename='images/main.png') }}") no-repeat center center;
+            background-size: contain;
+            box-shadow: 0 0 10px rgba(30, 144, 255, 0.7), 0 0 20px rgba(30, 144, 255, 0.7), 0 0 30px rgba(30, 144, 255, 0.7);
+            border-radius: 100%;
+            transition: all 0.5s ease-in-out; /* Animasyon için geçiş */
+            margin-bottom: 30px;
+        }
+
+        .logo-small {
+            top: 20px; /* Üstten boşluk */
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 50px;
+            opacity: 1;
+            box-shadow: 0 0 5px rgba(30, 144, 255, 0.7);
+        }
+
+        #mainTitle {
+            margin-top: 150px; /* Logodan sonra boşluk */
+            transition: opacity 0.3s ease-in-out;
+        }
+
+        .title-hidden {
+            opacity: 0;
+        }
+
+        .highlighted {
+            background-color: #87CEFA; /* Açık mavi */
+            color: black; /* Üzerindeki metnin okunurluğu için */
+            padding: 0.05em 0.2em; /* Biraz azaltılmış kenar boşluğu */
+            border-radius: 0.2em;
+            cursor: pointer;
+            transition: box-shadow 0.3s ease-in-out;
+            display: inline-block; /* Metin içindeki kutu modellemesi için */
+        }
+
+        .highlighted:hover {
+            box-shadow: 0 0 5px white;
+        }
+
+        .suggestion-area {
+            margin-top: 10px;
+            padding: 10px;
+            background-color: #1a1a1a;
+            border-radius: 5px;
+            color: white;
+            font-size: 0.9rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .suggestion-text {
+            flex-grow: 1;
+            margin-right: 10px;
+        }
+
+        .regenerate-button {
+            background-color: #333;
+            color: white;
+            border: none;
+            padding: 5px 10px;
+            border-radius: 3px;
+            cursor: pointer;
+            font-size: 0.8rem;
+        }
+
+        .regenerate-button:hover {
+            background-color: #555;
+        }
+
+        .scanning-animation {
+            display: inline-block;
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: #1E90FF;
+            margin-left: 5px;
+            animation: pulse 1s infinite alternate;
+        }
+
+        @keyframes pulse {
+            0% {
+                opacity: 0.3;
+                transform: scale(0.8);
+            }
+            100% {
+                opacity: 1;
+                transform: scale(1.2);
+            }
+        }
+
+        .hidden {
+            display: none !important;
+        }
+
+        #copyButton {
+            background-color: #1E90FF;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1rem;
+            margin-top: 20px;
+            outline: none;
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.3);
+            transition: 1s;
+        }
+
+        #copyButton:hover {
+            background-color:rgb(93, 121, 204);
+            transition: 0.5s;
+        }
+
+        #copyButton:active {
+            background-color:rgb(29, 81, 150);
+            transition: 1s;
+        }
+
+        /* inputArea içindeki span'ler için genel stil (highlighted olmayanlar dahil) */
+        #inputArea span {
+            transition: box-shadow 0.3s ease-in-out;
+            cursor: default;
+            padding: 0.05em 0.2em; /* highlighted ile aynı padding */
+            border-radius: 0.2em;
+            display: inline-block; /* highlighted ile aynı display */
+        }
+
+        #inputArea span:hover {
+            box-shadow: 0 0 5px white;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+
+    <img src='{{ url_for('static', filename='images/main.png') }}' class="logo-overlay" id="mainLogo" />
+    <h1 id="mainTitle">Textify</h1>
+    <div class="container">
+        <div id="inputArea" contenteditable="true" autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false">Yazmaya başla</div>
+        <textarea id="hiddenInputArea" class="hidden"></textarea>
+        <div id="suggestionArea" class="suggestion-area hidden">
+            <span id="suggestionText"></span>
+            <button id="regenerateButton" class="regenerate-button hidden">Regenerate</button>
+            <span id="scanning" class="">Scanning<span class="scanning-animation"></span><span class="scanning-animation" style="animation-delay: 0.2s;"></span><span class="scanning-animation" style="animation-delay: 0.4s;"></span></span>
+        </div>
+    </div>
+    <button id="copyButton">Kopyala</button>
+    <div class="alpha-tag">---------------------<br>Beta ~0.1 Release<br><br>TÜBİTAK 4006<br>DEVLET BAHÇELİ FEN LİSESİ<br><br>DANIŞMAN ÖĞRETMENLER;<br>ARDA ÜLGER<br><br>GÖREV ALAN ÖĞRENCİLER;<br>BERAT BAYRAKTAR<br>AYBERK EFE YALÇIN<br>AKİF EREN AKKUŞ<br>-------------------
+    </div>
+
+<script>
+        const inputArea = document.getElementById("inputArea");
+        const hiddenInputArea = document.getElementById("hiddenInputArea");
+        const suggestionArea = document.getElementById("suggestionArea");
+        const suggestionTextElement = document.getElementById("suggestionText");
+        const regenerateButton = document.getElementById("regenerateButton");
+        const scanningElement = document.getElementById("scanning");
+        const copyButton = document.getElementById("copyButton");
+        const mainLogo = document.getElementById("mainLogo");
+        const mainTitle = document.getElementById("mainTitle");
+        const container = document.querySelector(".container");
+        let lastOptimizedText = "";
+        let typingTimer;
+        let hasText = false;
+
+        const listxyz = []; // debug => deaktif edildi
+
+        let currentInput = "";
+        let currentWord = "";
+        let predictedCompletion = "";
+        let isAutofillActive = true;
+
+        let suggestedWord = null;
+
+        function correctForDisplay(input) {
+            let corrected = input.replace(/\s+/g, ' ').trim();
+            if (corrected.length > 0) {
+                corrected = corrected.charAt(0).toUpperCase() + corrected.slice(1);
+            }
+            return corrected;
+        }
+
+        function predictCompletion(text) {
+            if (!isAutofillActive) {
+                return "";
+            }
+            const words = text.split(/\s+/);
+            const lastWord = words[words.length - 1];
+            if (lastWord && lastWord.length > 0) {
+                const matches = listxyz.filter(kelime =>
+                    kelime.toLowerCase().startsWith(lastWord.toLowerCase()) &&
+                    kelime.toLowerCase() !== lastWord.toLowerCase()
+                );
+                return matches.length > 0 ? matches[0].slice(lastWord.length) : "";
+            }
+            return "";
+        }
+
+        function resetAutofill() {
+            predictedCompletion = "";
+            currentWord = "";
+            currentInput = "";
+        }
+
+        inputArea.addEventListener("focus", () => {
+            if (!hasText && inputArea.textContent === "Yazmaya başla") {
+                inputArea.textContent = "";
+                inputArea.style.textAlign = "left";
+                inputArea.style.color = "white";
+                mainLogo.classList.add("logo-small");
+                mainTitle.classList.add("title-hidden");
+                container.classList.add("container-shifted");
+                isAutofillActive = true;
+            }
+        });
+
+        inputArea.addEventListener("blur", () => {
+            if (!inputArea.textContent.trim()) {
+                inputArea.textContent = "Yazmaya başla";
+                inputArea.style.textAlign = "center";
+                inputArea.style.color = "rgba(255, 255, 255, 0.6)";
+                hasText = false;
+                suggestionArea.classList.add("hidden");
+                resetAutofill();
+                mainLogo.classList.remove("logo-small");
+                mainTitle.classList.remove("title-hidden");
+                container.classList.remove("container-shifted");
+            } else {
+                resetAutofill();
+            }
+            isAutofillActive = false;
+        });
+
+        inputArea.addEventListener('input', () => {
+            const currentText = inputArea.textContent;
+            hiddenInputArea.value = currentText;
+            hasText = currentText.trim().length > 0;
+            currentInput = currentText;
+
+            const words = currentText.split(/\s+/);
+            currentWord = words[words.length - 1];
+            predictedCompletion = predictCompletion(currentText);
+
+            if (hasText) {
+                suggestionArea.classList.remove("hidden");
+                suggestionTextElement.textContent = "";
+                regenerateButton.classList.add("hidden");
+                scanningElement.classList.remove("hidden");
+                clearTimeout(typingTimer);
+                typingTimer = setTimeout(optimizeAndUpdate, 3000);
+            } else {
+                suggestionArea.classList.add("hidden");
+                suggestedWord = null;
+                resetAutofill();
+            }
+        });
+
+        inputArea.addEventListener('keydown', (event) => {
+            if (event.key === 'Tab' && predictedCompletion) {
+                event.preventDefault();
+                const currentText = inputArea.textContent;
+                const words = currentText.split(/\s+/);
+                words[words.length - 1] += predictedCompletion;
+                inputArea.textContent = words.join(' ');
+                const range = document.createRange();
+                const sel = window.getSelection();
+                range.selectNodeContents(inputArea);
+                range.collapse(false);
+                sel.removeAllRanges();
+                sel.addRange(range);
+                resetAutofill();
+            }
+        });
+
+        function optimizeAndUpdate() {
+            isAutofillActive = false;
+            resetAutofill();
+            const text = inputArea.textContent;
+            if (text.trim()) {
+                fetch('/optimize', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ text: text })
+                })
+                    .then(response => {
+                        if (!response.ok) {
+                            console.error('HTTP Hatası:', response.status);
+                            suggestionTextElement.textContent = `HTTP Hatası: ${response.status}`;
+                            regenerateButton.classList.add("hidden");
+                            scanningElement.classList.add("hidden");
+                            suggestedWord = null;
+                            isAutofillActive = true;
+                            throw new Error(`HTTP error! status: ${response.status}`);
+                        }
+                        return response.json();
+                    })
+                    .then(data => {
+                        highlightDifferences(text, data.optimized);
+                        lastOptimizedText = data.optimized;
+                        if (data.suggestion && data.suggestion !== '#' && data.suggestion !== clickedOptimizedWord) {
+                            suggestionTextElement.textContent = `Şunu dene: ${data.suggestion}`;
+                            regenerateButton.classList.remove("hidden");
+                            suggestedWord = data.suggestion;
+                        } else if (data.suggestion === '#') {
+                            suggestionTextElement.textContent = "Öneri bulunamadı.";
+                            regenerateButton.classList.add("hidden");
+                            suggestedWord = null;
+                        } else {
+                            suggestionTextElement.textContent = "";
+                            regenerateButton.classList.add("hidden");
+                            suggestedWord = null;
+                        }
+                        scanningElement.classList.add("hidden");
+                        setTimeout(() => {
+                            isAutofillActive = true;
+                        }, 150);
+                    })
+                    .catch((error) => {
+                        console.error('Optimizasyon Hatası:', error);
+                        suggestionTextElement.textContent = "Optimizasyon sırasında bir hata oluştu.";
+                        regenerateButton.classList.add("hidden");
+                        scanningElement.classList.add("hidden");
+                        suggestedWord = null;
+                        isAutofillActive = true;
+                        resetAutofill();
+                    });
+            } else {
+                suggestionArea.classList.add("hidden");
+                suggestedWord = null;
+                resetAutofill();
+                isAutofillActive = true;
+            }
+        }
+
+        // GÜNCELLENMİŞ highlightDifferences fonksiyonu
+        function highlightDifferences(original, optimized) {
+            // Hem kelimeleri hem de boşlukları/yeni satırları yakala
+            const originalParts = original.split(/(\s+)/); // \s+ birden fazla boşluğu yakalar
+            const optimizedParts = optimized.split(/(\s+)/);
+
+            let newInnerHTML = "";
+            let originalIndex = 0;
+            let optimizedIndex = 0;
+
+            while (originalIndex < originalParts.length || optimizedIndex < optimizedParts.length) {
+                const currentOriginal = originalParts[originalIndex] || '';
+                const currentOptimized = optimizedParts[optimizedIndex] || '';
+
+                const isOriginalSpace = /^\s+$/.test(currentOriginal);
+                const isOptimizedSpace = /^\s+$/.test(currentOptimized);
+
+                // Eğer her iki kısım da boşluksa veya aynı metinse (kelime veya boşluk)
+                if (currentOriginal === currentOptimized) {
+                    newInnerHTML += currentOriginal;
+                    originalIndex++;
+                    optimizedIndex++;
+                }
+                // Eğer optimize edilmiş kısım farklı bir kelimeyse veya orijinalde olmayan bir kelimeyse
+                else if (currentOptimized && !isOptimizedSpace) {
+                    // Orijinaldeki boşlukları atla, eğer yeni bir kelime ekleniyorsa
+                    if (isOriginalSpace) {
+                        originalIndex++; // Orijinal boşluğu tüket
+                    }
+                    newInnerHTML += `<span class="highlighted" data-original="${currentOriginal}" data-optimized="${currentOptimized}" title="Alternatif sun">${currentOptimized}</span>`;
+                    optimizedIndex++;
+                    if (!currentOriginal && !isOriginalSpace) { // Orijinalde karşılığı yoksa, sadece optimize edilmişi ekledik
+                        originalIndex++; // Bir sonraki orijinal parçaya geçmek için. (Bunu dikkatli kullan, bazen index kaymasına yol açabilir)
+                    }
+                }
+                // Eğer orijinal kısım optimize edilmişte yoksa (silinmiş kelime)
+                else if (currentOriginal && !isOriginalSpace) {
+                    newInnerHTML += `<span data-original="${currentOriginal}" data-optimized="">${currentOriginal}</span>`; // Silinen kelimeyi highlight etmiyoruz ama göstermek için span içinde
+                    originalIndex++;
+                }
+                // Sadece optimize edilmiş kısımda boşluk varsa ve orijinalde yoksa
+                else if (isOptimizedSpace && !isOriginalSpace) {
+                    newInnerHTML += currentOptimized;
+                    optimizedIndex++;
+                    originalIndex++; // Orijinalde boşluk yoksa, orijinalden de ilerle
+                }
+                // Sadece orijinal kısımda boşluk varsa ve optimize edilmişte yoksa (yani boşluk silinmiş)
+                else if (isOriginalSpace && !isOptimizedSpace) {
+                    originalIndex++;
+                }
+                else { // Beklenmeyen durum veya her ikisi de bitti
+                    originalIndex++;
+                    optimizedIndex++;
+                }
+            }
+            inputArea.innerHTML = newInnerHTML;
+        }
+
+        copyButton.addEventListener('click', () => {
+            // `inputArea.textContent` otomatik olarak görünen metni alır,
+            // HTML içindeki span'leri ve diğer etiketleri atlar.
+            const textToCopy = inputArea.textContent;
+            navigator.clipboard.writeText(textToCopy)
+                .then(() => {
+                    alert('Metin panoya kopyalandı!');
+                })
+                .catch((err) => {
+                    console.error('Panoya kopyalama başarısız oldu:', err);
+                    alert('Metin kopyalanamadı!');
+                });
+        });
+
+        // Mouse olayları için mevcut kodunda problem yoktu, aynen korundu.
+        inputArea.addEventListener('mouseover', (event) => {
+            if (event.target.tagName === 'SPAN' && event.target.classList.contains('highlighted')) {
+                event.target.style.boxShadow = '0 0 5px white';
+                event.target.style.cursor = 'pointer';
+            }
+        });
+
+        inputArea.addEventListener('mouseout', (event) => {
+            if (event.target.tagName === 'SPAN' && event.target.classList.contains('highlighted')) {
+                event.target.style.boxShadow = '';
+                event.target.style.cursor = 'default';
+            }
+        });
+
+        inputArea.addEventListener('mousedown', (event) => {
+            isAutofillActive = false;
+            resetAutofill();
+            if (event.target.tagName === 'SPAN' && event.target.classList.contains('highlighted')) {
+                const clickedOptimizedWord = event.target.dataset.optimized;
+                const clickedOriginalWord = event.target.dataset.original; // Bu satır kullanılmıyor gibi görünüyor, istersen kaldırabilirsin.
+                const currentText = inputArea.textContent; // Mevcut görünen metin
+                const clickedSpan = event.target;
+
+                scanningElement.classList.remove("hidden");
+                suggestionTextElement.textContent = "";
+                regenerateButton.classList.add("hidden");
+
+                fetch('/suggest_new', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({ text: currentText, word: clickedOptimizedWord }) // currentText'i backend'e gönder
+                })
+                    .then(response => response.json())
+                    .then(data => {
+                        scanningElement.classList.add("hidden");
+                        if (data.suggestion && data.suggestion !== '#' && data.suggestion !== clickedOptimizedWord) {
+                            clickedSpan.textContent = data.suggestion;
+                            clickedSpan.dataset.optimized = data.suggestion;
+                            clickedSpan.classList.remove('highlighted'); // Yeni kelime önerisi uygulandığında highlight'ı kaldır
+                            clickedSpan.style.backgroundColor = ''; // Arka plan rengini temizle
+                            clickedSpan.style.color = ''; // Yazı rengini temizle
+
+                            const range = document.createRange();
+                            const sel = window.getSelection();
+                            range.setStartAfter(clickedSpan);
+                            range.collapse(true);
+                            sel.removeAllRanges();
+                            sel.addRange(range);
+                        } else if (data.suggestion === '#') {
+                            // Kelime silinecekse
+                            // Span'i ve eğer varsa ardından gelen boşluğu kaldır
+                            let nodeToRemove = clickedSpan;
+                            if (clickedSpan.nextSibling && clickedSpan.nextSibling.nodeType === Node.TEXT_NODE && /^\s+$/.test(clickedSpan.nextSibling.textContent)) {
+                                nodeToRemove = clickedSpan.nextSibling; // Boşluğu silmek için işaretle
+                                clickedSpan.parentNode.removeChild(clickedSpan); // Kelimeyi sil
+                            }
+                            clickedSpan.parentNode.removeChild(nodeToRemove); // Boşluğu veya kelimeyi sil
+
+                            const range = document.createRange();
+                            const sel = window.getSelection();
+                            if (clickedSpan.previousSibling) {
+                                range.setStartAfter(clickedSpan.previousSibling);
+                            } else if (inputArea.firstChild) {
+                                range.setStartBefore(inputArea.firstChild);
+                            }
+                            range.collapse(true);
+                            sel.removeAllRanges();
+                            sel.addRange(range);
+                        } else {
+                            alert('Yeni bir alternatif bulunamadı.');
+                        }
+                        setTimeout(() => {
+                            isAutofillActive = true;
+                        }, 150);
+                    })
+                    .catch(error => {
+                        console.error('Yeni Öneri Hatası:', error);
+                        alert('Yeni bir alternatif alınırken hata oluştu.');
+                        scanningElement.classList.add("hidden");
+                        setTimeout(() => {
+                            isAutofillActive = true;
+                        }, 150);
+                    });
+            } else {
+                setTimeout(() => {
+                    isAutofillActive = true;
+                }, 150);
+            }
+        });
+
+
+    </script>
+
+</body>
+</html>
